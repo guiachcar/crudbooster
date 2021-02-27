@@ -23,7 +23,6 @@
         <div class="form-group">
             <label>Name</label>
             <input class="form-control" required name='config[name]' type='text' value='{{@$config->name}}'/>
-            
         </div>
 
         <div class="form-group">
@@ -49,28 +48,14 @@
     } catch (\Exception $e) {
         die('ERROR');
     }
-                            
     ?>
 
     @if($sql)
-        <p id="date_filter">
-            <span id="date-label-from" class="date-label">Data Início: </span><input class="date_range_filter date" type="text" id="datepicker_from" />
-            <span id="date-label-to" class="date-label">Data Fim: <input class="date_range_filter date" type="text" id="datepicker_to" />
-        </p>
-        <table id="table" class='table table-striped'>
+        <table class='table table-striped'>
             <thead>
             <tr>
-                <?php $count_data=0;?>
                 @foreach($sql[0] as $key=>$val)
-                    @if(substr($key,0,5) == "data_")
-                    <script>
-                        var index_data= {{$count_data}};
-                    </script>
-                    @endif
-                    <th>{{$key}}</th> 
-
-                                       
-                <?php $count_data++;?>
+                    <th>{{$key}}</th>
                 @endforeach
             </tr>
             </thead>
@@ -83,117 +68,17 @@
                 </tr>
             @endforeach
             </tbody>
-            <tfoot>
-                <tr>
-                    @foreach($sql[0] as $key=>$val)
-                        <th>{{$key}}</th>
-                    @endforeach
-                </tr>
-            </tfoot>
         </table>
-
-        
-       
-     
         <script type="text/javascript">
-            $('#table tfoot th').each( function () {
-              var title = $(this).text();
-              $(this).html( '<input type="text" placeholder="Filtrar '+title+'" />' );
-            } );
-            var oTable = $('table.table').DataTable({
-                dom: 'Bfrtip',
-                buttons: [
-                    {extend:'copy',text:'Copiar'}, {extend:'csv',text:'CSV'}, {extend:'excel',text:'Excel'}, {extend:'pdf',text:'PDF'}, {extend:'print',text:'Imprimir'}
-                ]
+            $('table.table').DataTable({
+                dom: "<'row'<'col-sm-6'l><'col-sm-6'f>><'row'<'col-sm-12'tr>><'row'<'col-sm-5'i><'col-sm-7'p>>",
+                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]]
             });
-            oTable.columns().every( function () {
-                var that = this;
-        
-                $( 'input', this.footer() ).on( 'keyup change', function () {
-                    if ( that.search() !== this.value ) {
-                        that
-                            .search( this.value )
-                            .draw();
-                    }
-                } );
-            } );
-
-         
-            $("#datepicker_from").datepicker({
-                dateFormat: 'dd/mm/yy',
-                dayNames: ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'],
-                dayNamesMin: ['D', 'S', 'T', 'Q', 'Q', 'S', 'S', 'D'],
-                dayNamesShort: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
-                monthNames: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
-                monthNamesShort: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
-                nextText: 'Proximo',
-                prevText: 'Anterior',
-                "onSelect": function(date) {
-                    date = date.split(/\//)
-                    minDateFilter = new Date([ date[1], date[0], date[2] ].join('/')).getTime();
-                    oTable.draw();
-                    oTable.draw();
-                }
-            }).keyup(function() {
-                minDateFilter = new Date(this.value).getTime();
-                
-                this.text = minDateFilter;
-            });
-
-            $("#datepicker_to").datepicker({
-                dateFormat: 'dd/mm/yy',
-                dayNames: ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'],
-                dayNamesMin: ['D', 'S', 'T', 'Q', 'Q', 'S', 'S', 'D'],
-                dayNamesShort: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
-                monthNames: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
-                monthNamesShort: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
-                nextText: 'Proximo',
-                prevText: 'Anterior',
-                "onSelect": function(date) {
-                    date = date.split(/\//)
-                    maxDateFilter = new Date([ date[1], date[0], date[2] ].join('/')).getTime();
-                    console.log(maxDateFilter);
-                    maxDateFilter = maxDateFilter + (24 * 60 * 60 * 1000);
-                console.log(maxDateFilter);
-                oTable.draw();
-                    oTable.draw();
-                }
-            }).keyup(function() {
-                maxDateFilter = new Date(this.value).getTime();
-                oTable.draw();                
-                this.text = maxDateFilter;
-            }); 
-            // Date range filter
-            minDateFilter = "";
-            maxDateFilter = "";
-
-            $.fn.dataTableExt.afnFiltering.push(
-                function(oSettings, aData, iDataIndex) {
-                    if (typeof aData._date == 'undefined') {
-                        var date_normal = aData[index_data].split(/\//);
-                        aData._date = new Date ([ date_normal[1], date_normal[0], date_normal[2] ].join('/')).getTime();
-                    }
-                    
-                            
-                    if (minDateFilter && !isNaN(minDateFilter)) {
-                        if (aData._date < minDateFilter) {
-                            return false;
-                        }
-                    }
-
-                    if (maxDateFilter && !isNaN(maxDateFilter)) {
-                        if (aData._date > maxDateFilter) {
-                            return false;
-                        }
-                    }
-                    return true;
-                }
-            );
         </script>
+    @endif
+    <?php
+    }else {
+        echo $value;
+    }
+    ?>
 @endif
-<?php
-}else {
-    echo $value;
-}
-?>
-@endif  
